@@ -1,10 +1,15 @@
-import { Sequelize } from "sequelize-typescript";
+import { ConnectionOptions } from 'typeorm';
 
-const dbConnectionString = process.env.DB_CONNECTION_STRING as string;
+const databaseConfig: ConnectionOptions = {
+  type: 'postgres',
+  host: process.env.DB_HOST,
+  port: parseInt(process.env.DB_PORT || '5432', 10),
+  username: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  synchronize: true,
+  logging: true,
+  entities: [__dirname + '/../models/*.ts'],
+};
 
-
-const sequelize = new Sequelize( dbConnectionString, {
-  dialect: "postgres",
-});
-
-export default sequelize;
+export default databaseConfig;
