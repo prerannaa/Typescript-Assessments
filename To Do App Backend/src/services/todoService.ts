@@ -1,39 +1,38 @@
-import { getRepository, UpdateResult, DeleteResult } from 'typeorm';
-import { Todo } from '../models/Todo';
+import TodoModel from  "../models/todoModel";
+import NotFoundError from "../error/notFoundError";
 
-export const getAllTodos = async (): Promise<Todo[]> => {
-  const todoRepository = getRepository(Todo);
-  return todoRepository.find();
+export const createTask = async (
+    title:string,
+    completed: boolean,
+    task:number
+) => {
+  const data = await TodoModel.createTask({
+    title,
+    completed,
+    created_by: task,
+  });
+
+  return data;
 };
 
-export const createTodo = async (title: string): Promise<Todo> => {
-  const todoRepository = getRepository(Todo);
-  const newTodo = todoRepository.create({ title });
-  return todoRepository.save(newTodo);
-};
 
-export const updateTodo = async (id: number, title?: string, completed?: boolean): Promise<Todo | null> => {
-  const todoRepository = getRepository(Todo);
+export const updateTask = async (id: number, title: string) => {
+  const task = await TodoModel.findById(id);
 
-  try {
-    const todo = await todoRepository.findOneOrFail({ where: { id } });
-    todo.title = title !== undefined ? title : todo.title;
-    todo.completed = completed !== undefined ? completed : todo.completed;
-
-    await todoRepository.save(todo);
-
-    return todo;
-  } catch (error) {
-    return null;
+  if (!task) {
+    throw new NotFoundError(`Task with id: ${id} not found`);
   }
+
+  await TodoModel.updateTaskTitle(id, title);
+  return updateTask;
 };
 
-export const deleteTodo = async (id: number): Promise<void> => {
-  const todoRepository = getRepository(Todo);
+export const deleteTask = async (id: number) => {
+  const task = await TodoModel.findById(id);
 
-  try {
-    await todoRepository.delete(id);
-  } catch (error) {
-    // Handle error if needed
+  if (!task) {
+    throw new NotFoundError(`Task with id: ${id} not found`);
   }
+
+  await TodoModel.deleteTask(id);
 };

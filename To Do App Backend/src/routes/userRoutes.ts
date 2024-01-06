@@ -1,10 +1,17 @@
-import { Router } from 'express';
-import * as userController from '../controller/userController';
+import { Router } from "express";
+
+import { deleteUser, getById, getAll, updateUser } from "../controllers/userController";
+import { validateReqBody, validateReqQuery } from "../middleware/validator";
+import { updateUserSchema } from "../schema/user";
 
 const router = Router();
 
-router.post('/signup', userController.signup);
-router.post('/login', userController.login);
-router.post('/refresh-token', userController.refreshAccessToken);
+router.get("/", getAll);
+
+router.get("/:id", getById);
+
+router.put("/:id", validateReqBody(updateUserSchema), updateUser);
+
+router.delete("/:id", deleteUser);
 
 export default router;

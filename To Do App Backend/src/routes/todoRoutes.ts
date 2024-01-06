@@ -1,11 +1,12 @@
-import { Router } from 'express';
-import * as todoController from '../controller/todoController';
+import { Router } from "express";
+import {createTask, updateTask, deleteTask} from "../controllers/todoController";
+import { validateReqBody } from "../middleware/validator";
+import { getTaskSchema } from "../schema/todo";
+
 
 const router = Router();
+router.post("/", validateReqBody(getTaskSchema), createTask);
+router.delete("/:id", deleteTask);
+router.put("/:id", updateTask);
 
-router.get('/todos', todoController.getAllTodos);
-router.post('/todos', todoController.createTodo);
-router.put('/todos/:id', todoController.updateTodo);
-router.delete('/todos/:id', todoController.deleteTodo);
-
-export default router;
+export { router as TodoRoutes };

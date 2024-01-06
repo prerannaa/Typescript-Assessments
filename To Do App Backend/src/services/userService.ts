@@ -1,39 +1,43 @@
-// src/services/userService.ts
-import * as bcrypt from 'bcrypt';
-import { getRepository } from 'typeorm';
-import { User } from '../models/User';
-import { generateAccessToken, generateRefreshToken, verifyToken } from './authServices';
+import UserModel from "../models/userModel";
+import NotFoundError from "../error/notFoundError";
+import { IUser } from "../interface/user";
 
-export const signup = async (username: string, password: string): Promise<User> => {
-  const userRepository = getRepository(User);
-  const hashedPassword = await bcrypt.hash(password, 10);
+export const getAll = async () => {
+  const data = await UserModel.getAll();
 
-  const user = userRepository.create({
-    username,
-    password: hashedPassword,
-  });
-
-  return userRepository.save(user);
+  return data;
 };
 
-export const login = async (username: string, password: string): Promise<string> => {
-  const userRepository = getRepository(User);
-  const user = await userRepository.findOne({ where: { username } });
+export const getById = async (id: number) => {
+  const data = await UserModel.getById(id);
+
+  if (!data) {
+    throw new NotFoundError(`User with id: ${id} not found`);
+  }
+
+  return data;
+};
+
+export const updateUser = async (id: number, body: IUser) => {
+  const user = await UserModel.getById(id);
 
   if (!user) {
-    throw new Error('Invalid username or password');
+    throw new NotFoundError(`User with id: ${id} not found`);
   }
 
-  const passwordMatch = await bcrypt.compare(password, user.password);
+  await UserModel.update(id, body);
 
-  if (!passwordMatch) {
-    throw new Error('Invalid username or password');
-  }
+  const updatedUser = await UserModel.getById(id);
 
-  return generateAccessToken(user.id);
+  return updatedUser;
 };
 
-export const refreshAccessToken = async (refreshToken: string): Promise<string> => {
-  const decodedToken: any = verifyToken(refreshToken);
-  return generateAccessToken(decodedToken.userId);
+export const deleteUser = async (id: number) => {
+  const user = await UserModel.getById(id);
+
+  if (!user) {
+    throw new NotFoundError(`User with id: ${id} not found`);
+  }
+
+  await UserModel.delete(id);
 };

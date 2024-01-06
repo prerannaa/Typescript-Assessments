@@ -1,29 +1,22 @@
-// src/index.ts
-import express from 'express';
-import bodyParser from 'body-parser';
-import { createConnection } from 'typeorm';
-import { loggerMiddleware } from './middlewares/loggerMiddleware';
-import { errorHandlerMiddleware } from './middlewares/errorHandlerMiddleware';
-import todoRoutes from './routes/todoRoutes';
-import userRoutes from './routes/userRoutes';
-import databaseConfig from './config/database';
+import express from "express";
+
+import config from "./config";
+import routes from "./routes";
+import { logger } from "./middleware/logger";
+import { genericErrorHandler, notFoundError } from "./middleware/errorHandler";
 
 const app = express();
 
-app.use(bodyParser.json());
-app.use(loggerMiddleware);
+app.use(express.json());
 
-app.use('/api/todos', todoRoutes);
-app.use('/api/users', userRoutes);
+app.use(logger);
 
-app.use(errorHandlerMiddleware);
+app.use(routes);
 
-const PORT = process.env.PORT || 3000;
+app.use(genericErrorHandler);
 
-createConnection(databaseConfig)
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-    });
-  })
-  .catch((error) => console.error('Error connecting to the database', error));
+app.use(notFoundError);
+
+console.log(`Server listening on port: ${config.serverPort}`);
+
+app.listen(config.serverPort);
